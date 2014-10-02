@@ -28,9 +28,9 @@ You have to get a new digital storage oscilloscope - GDS-2000E(GOOD WILL INSTRUM
 
 Environment
 ------------
-Currently OpenWave-2KE may be executed on Windows XP/7/8 32 or 64 bits OS. You have to download and install the USB driver(dso_vpo V1.08) from [www.gwinstek.com](http://www.gwinstek.com) or [here](/USB driver/dso_vpo_v108.zip) when the first connection with GDS-2000E. 
+Currently OpenWave-2KE may be executed on Windows XP/7/8 32 or 64 bits OS. You have to download and install the USB driver(dso_vpo V1.08) from [www.gwinstek.com](http://www.gwinstek.com) or [here](/dso_vpo_v108.zip) when the first connection with GDS-2000E. 
 
-Please unzip the [OpenWave-2KE V1.00.zip](/Released/OpenWave-2KE V1.00.zip) and find the OpenWave-2KE.exe in the folder. OpenWave-2KE.exe can be executed directly without installation.
+Please unzip the [OpenWave-2KE V1.00.zip](/OpenWave-2KE V1.00.zip) and find the OpenWave-2KE.exe in the folder. OpenWave-2KE.exe can be executed directly without installation.
 
 
 
