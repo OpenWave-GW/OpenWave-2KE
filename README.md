@@ -16,12 +16,12 @@ This icon is copyright 2014 (c) Good Will Instrument Co., Ltd all rights reserve
 
 OpenWave-2KE is an open-source project. It's a simple python program that can get image or raw data from digital storage oscilloscope(GDS-2000E) via the USB port.  
 
-
+Now we can execute the same source code on both Windows and Linux(Ubuntu) operating system without changing a word.
 
 
 Equipment
 ------------
-You have to get a new digital storage oscilloscope - GDS-2000E(GOOD WILL INSTRUMENT) and a PC or NB with MS Windows OS.
+You have to get a new digital storage oscilloscope - GDS-2000E(GOOD WILL INSTRUMENT) and a PC or NB with MS Windows or Ubuntu Linux OS.
 
 
 
@@ -32,7 +32,7 @@ Currently OpenWave-2KE may be executed on Windows XP/7/8 32 or 64 bits OS. You h
 
 Please unzip the [OpenWave-2KE V1.00.zip](/OpenWave-2KE V1.00.zip) and find the OpenWave-2KE.exe in the folder. OpenWave-2KE.exe can be executed directly without installation.
 
-
+The OpenWave-2KE source code can also be executed on Ubuntu 32 bits Linux OS. The USB driver is not required in this environment.
 
 
 Development Tools
@@ -50,6 +50,11 @@ Development Tools
    * six 1.4.1
 
  *OpenWave-2KE is developed under Windows 32 bits environment, and all the packages are Windows 32bits version.*
+ 
+ *OpenWave-2KE is also tested under Ubuntu 10.04 (32 bits) with the same version of the packages listed above.  And the following package and libraries are required:*
+   * nose-1.3.4
+   * qt4-qmake
+   * libqt4-dev
 
 - **Python IDE:**
    If you need a Python IDE tool, Eric4 4.5.19  is recommended:
@@ -71,4 +76,12 @@ Screenshot
 
 **Get raw data:**
 ![GetRawData](/image/pic2.png)
+
+
+**Screenshot -- Win 7:**
+![MS Windows](/image/Win7_Screenshot.jpg)
+
+
+**Screenshot -- Ubuntu Linux:**
+![Ubuntu Linux](/image/Ubuntu1004_Screenshot.jpg)
 
