@@ -29,11 +29,11 @@ Module imported:
   2. PySerial 2.7
   3. Matplotlib 1.3.1
   4. Numpy 1.8.0
-  5. PIL 2.4.0
+  5. PIL 1.1.7
 
-Version: 1.00
+Version: 1.01
 
-Created on SEP 17 2014
+Created on OCT 07 2014
 
 Author: Kevin Meng
 """
@@ -44,9 +44,9 @@ from struct import unpack
 import numpy as np
 import array
 import struct
-import sys,  time
+import os, sys, time
 
-__version__ = "1.00" #dso2ke module's version.
+__version__ = "1.01" #dso2ke module's version.
 
 class Dso2ke:
     def __init__(self):
@@ -68,7 +68,6 @@ class Dso2ke:
             str=port_list[i][2].split('=')
             if(str[0]=='USB VID:PID'):
                 str=str[1].split(' ')[0] #Extract VID and PID from string.
-                #print str
                 str=str.split(':')
                 print str
                 if((str[1]=='003F')or(str[1]=='0041')):
@@ -76,15 +75,27 @@ class Dso2ke:
                 elif((str[1]=='0040')or(str[1]=='0042')):
                     self.chnum=4 #4 channel.
                 if((str[0]=='2184')and((self.chnum==2)or(self.chnum==4))):
-                    port=port_list[i][0][3:]
-                    com=int(port)
-                    if(com>0):
-                        self.IO = serial.Serial(com-1, baudrate=115200, bytesize=8, parity ='N', stopbits=1, xonxoff=False, dsrdtr=False, timeout=2)
-                        #self.write('*CLS\n')
-                        self.write('*IDN?\n')
-                        name = self.read().split(',')         #Query *IDN?
-                        print('%s connected!\n'% name[1])     #Print model name.
-                        return com-1
+                    if(os.name=='posix'): #Ubuntu
+                        port=port_list[i][0]
+                        if(port[0:11]=='/dev/ttyACM'):
+                            self.IO = serial.Serial(port, baudrate=115200, bytesize=8, parity ='N', stopbits=1, xonxoff=False, dsrdtr=False, timeout=2)
+                            #self.write('*CLS\n')
+                            self.write('*IDN?\n')
+                            name = self.read().split(',')         #Query *IDN?
+                            print('%s connected!\n'% name[1])     #Print model name.
+                            return 0
+                        else:
+                            return -1
+                    else: #Win32
+                        port=port_list[i][0][3:]
+                        com=int(port)
+                        if(com>0):
+                            self.IO = serial.Serial(com-1, baudrate=115200, bytesize=8, parity ='N', stopbits=1, xonxoff=False, dsrdtr=False, timeout=2)
+                            #self.write('*CLS\n')
+                            self.write('*IDN?\n')
+                            name = self.read().split(',')         #Query *IDN?
+                            print('%s connected!\n'% name[1])     #Print model name.
+                            return com-1
         print('Device not found!')
         self.chnum=4 #Offline operation(default :4 channel).
         return -1
