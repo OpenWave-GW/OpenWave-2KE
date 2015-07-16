@@ -27,18 +27,20 @@ OpenWave-2KE is a python example program used to get waveform and image from DSO
 
 Module imported:
   1. Python 2.7.6
-  2. dso2ke 1.00
+  2. dso2ke 1.02
   3. PySerial 2.7
   4. Matplotlib 1.3.1
   5. Numpy 1.8.0
   6. PySide 1.2.1
+  7. PIL 1.1.7
 
-Version: 1.00
+Version: 1.01
 
-Created on SEP 17 2014
+Created on JUL 09 2014
 
 Author: Kevin Meng
 """
+import matplotlib.pyplot as plt
 import matplotlib as mpl
 mpl.rcParams['backend.qt4'] = 'PySide'  #Used for PySide.
 mpl.rcParams['agg.path.chunksize'] = 100000 #For big data.
@@ -46,13 +48,13 @@ from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as NavigationToolbar
 from mpl_toolkits.axes_grid1 import host_subplot
 import mpl_toolkits.axisartist as AA
-import matplotlib.pyplot as plt
 from PySide import QtCore, QtGui
 import numpy as np
+from PIL import Image
 import os, sys, time
 import dso2ke
 
-__version__ = "1.00" #OpenWave-2KE software version.
+__version__ = "1.01" #OpenWave-2KE software version.
 
 class Window(QtGui.QWidget):
     def __init__(self, parent=None):
@@ -200,7 +202,7 @@ class Window(QtGui.QWidget):
                 if(dso.info[ch]==[]):
                     print('Failed to save data, raw data information is required!')
                     return
-            f = open(file_name, 'w')
+            f = open(file_name, 'wb')
             item=len(dso.info[0])
             #Write file header.
             f.write('%s, \n' % dso.info[0][0])
@@ -230,7 +232,7 @@ class Window(QtGui.QWidget):
                     str+=('%s,' % dso.iWave[0][x])
                 else:
                     for ch in xrange(num):
-                        str+=('%s,,' % dso.iWave[ch][x])
+                        str+=('%s, ,' % dso.iWave[ch][x])
                 str+='\n'
                 f.write(str)
                 if(x==n_tenth):
@@ -248,7 +250,11 @@ class Window(QtGui.QWidget):
             main.figure.savefig(file_name)
             print('Saved image to %s.'%file_name)
         else:  #Save figure to png file.
-            dso.im.save(file_name)
+            if(dso.nodename=='pi'): #For raspberry pi only.
+                img=dso.im.transpose(Image.FLIP_TOP_BOTTOM)
+                img.save(file_name)
+            else:
+                dso.im.save(file_name)
             print('Saved image to %s.'%file_name)
 
     def loadAction(self):
