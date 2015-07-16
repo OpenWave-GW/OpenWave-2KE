@@ -9,30 +9,30 @@ OpenWave-2KE
 ============
 ![GetImage](/image/OpenWave256x256.jpg)
 
-This icon is copyright 2014 (c) Good Will Instrument Co., Ltd all rights reserved.
+This icon is copyright 2015 (c) Good Will Instrument Co., Ltd all rights reserved.
 
 
 
 
-OpenWave-2KE is an open-source project. It's a simple python program that can get image or raw data from digital storage oscilloscope(GDS-2000E) via the USB port.  
+OpenWave-2KE is an open-source project. It's a simple python program that can get image or raw data from digital storage oscilloscope(GDS-2000E/DCS-2000E) via the USB port.  
 
-Now we can execute the same source code on both Windows and Linux(Ubuntu) operating system without changing a word.
+Now we can execute the same source code on Windows, Linux(Ubuntu) and Raspbian(on Raspberry Pi 2) operating system without changing a word.
 
 
 Equipment
 ------------
-You have to get a new digital storage oscilloscope - GDS-2000E(GOOD WILL INSTRUMENT) and a PC or NB with MS Windows or Ubuntu Linux OS.
+You have to get a new digital storage oscilloscope - GDS-2000E(GOOD WILL INSTRUMENT)/DCS-2000E(TEXIO) and a PC or NB with MS Windows OS.
 
 
 
 
 Environment
 ------------
-Currently OpenWave-2KE may be executed on Windows XP/7/8 32 or 64 bits OS. You have to download and install the USB driver(dso_vpo V1.08) from [www.gwinstek.com](http://www.gwinstek.com) or [here](/dso_vpo_v108.zip) when the first connection with GDS-2000E. 
+Currently OpenWave-2KE may be executed on Windows XP/7/8 32 or 64 bits OS. You have to download and install the USB driver(dso_vpo V1.08) from [www.gwinstek.com](http://www.gwinstek.com) or [here](/USB driver/dso_vpo_v108.zip) when the first connection with GDS-2000E. 
 
-Please unzip the [OpenWave-2KE V1.00.zip](/OpenWave-2KE V1.00.zip) and find the OpenWave-2KE.exe in the folder. OpenWave-2KE.exe can be executed directly without installation.
+Please unzip the [OpenWave-2KE V1.01.zip](/Released/OpenWave-2KE V1.01.zip) and find the OpenWave-2KE.exe in the folder. OpenWave-2KE.exe can be executed directly without installation.
 
-The OpenWave-2KE source code can also be executed on Ubuntu 32 bits Linux OS. The USB driver is not required in this environment.
+The OpenWave-2KE source code can also be executed on Ubuntu 32 bits Linux OS or Raspbian OS(on Raspberry Pi 2). The USB driver is not required in this environment.
 
 
 Development Tools
@@ -50,11 +50,27 @@ Development Tools
    * six 1.4.1
 
  *OpenWave-2KE is developed under Windows 32 bits environment, and all the packages are Windows 32bits version.*
- 
- *OpenWave-2KE is also tested under Ubuntu 10.04 (32 bits) with the same version of the packages listed above.  And the following package and libraries are required:*
+
+- **Ubuntu Linux:**
+   OpenWave-2KE is also tested under Ubuntu 10.04 (32 bits) with the same version of the packages listed above.  And the following package and libraries are required:
    * nose-1.3.4
    * qt4-qmake
    * libqt4-dev
+
+- **Raspbian Linux:**
+   OpenWave-2KE is also tested on Raspberry Pi 2 with following package and libraries:
+   * python-matplotlib
+   * python-numpy
+   * python-scipy
+   * libatlas-base-dev
+   * gfortran
+   * python-pip
+   * scipy
+   * Pillow
+   * python-pyside
+   * python-serial
+   * pyserial
+
 
 - **Python IDE:**
    If you need a Python IDE tool, Eric4 4.5.19  is recommended:
@@ -63,7 +79,7 @@ Development Tools
 - **Executable File:**
    If you want to convert python program into stand-alone executables under Windows. The following packages are required:
    * PyInstaller 2.1
-   * pywin32 218.4 .
+   * pywin32 218.4
 
 
 
@@ -79,9 +95,12 @@ Screenshot
 
 
 **Screenshot -- Win 7:**
-![MS Windows](/image/Win7_Screenshot.jpg)
+![MS Windows](/image/Win7_Screenshot.png)
 
 
 **Screenshot -- Ubuntu Linux:**
-![Ubuntu Linux](/image/Ubuntu1004_Screenshot.jpg)
+![Ubuntu Linux](/image/Ubuntu1004_Screenshot.png)
 
+
+**Screenshot -- Raspbian on Raspberry Pi 2:**
+![Raspbian Linux](/image/Raspbian_Screenshot.png)
