@@ -31,9 +31,9 @@ Module imported:
   4. Numpy 1.8.0
   5. PIL 1.1.7
 
-Version: 1.01
+Version: 1.02
 
-Created on OCT 07 2014
+Created on JUL 09 2015
 
 Author: Kevin Meng
 """
@@ -46,7 +46,18 @@ import array
 import struct
 import os, sys, time
 
-__version__ = "1.01" #dso2ke module's version.
+__version__ = "1.02" #dso2ke module's version.
+
+def generate_lut():
+    global lu_table
+    num=65536
+    lu_table=[]
+    for i in xrange(num):
+        pixel888=[0]*3
+        pixel888[0]=(i>>8)&0xf8
+        pixel888[1]=(i>>3)&0xfc
+        pixel888[2]=(i<<3)&0xf8
+        lu_table.append(pixel888)
 
 class Dso2ke:
     def __init__(self):
@@ -61,6 +72,14 @@ class Dso2ke:
         self.ch_list=[]
         self.info=[[], [], [], []]
         self.chnum=0
+        if(os.name=='posix'): #unix
+            if(os.uname()[1]=='raspberrypi'):
+                self.nodename='pi'
+            else:
+                self.nodename='unix'
+        else:
+            self.nodename='win'
+        generate_lut()
     def ScanComPort(self):
         port_list=list(list_ports.comports())
         num=len(port_list)
@@ -70,32 +89,66 @@ class Dso2ke:
                 str=str[1].split(' ')[0] #Extract VID and PID from string.
                 str=str.split(':')
                 print str
-                if((str[1]=='003F')or(str[1]=='0041')):
-                    self.chnum=2 #2 channel.
-                elif((str[1]=='0040')or(str[1]=='0042')):
-                    self.chnum=4 #4 channel.
-                if((str[0]=='2184')and((self.chnum==2)or(self.chnum==4))):
-                    if(os.name=='posix'): #Ubuntu
-                        port=port_list[i][0]
-                        if(port[0:11]=='/dev/ttyACM'):
-                            self.IO = serial.Serial(port, baudrate=115200, bytesize=8, parity ='N', stopbits=1, xonxoff=False, dsrdtr=False, timeout=2)
-                            #self.write('*CLS\n')
+                usb_vid=0
+                if(str[0]=='2184'):
+                    if((str[1].lower()=='003f')or(str[1]=='0041')):
+                        self.chnum=2 #2 channel.
+                        usb_vid=1
+                    elif((str[1]=='0040')or(str[1]=='0042')):
+                        self.chnum=4 #4 channel.
+                        usb_vid=1
+                elif((str[0].lower()=='098f')and(str[1]=='2204')):
+                    usb_vid=2
+                    self.chnum=4
+                if((usb_vid!=0)and(self.chnum!=0)):
+                    if(self.nodename=='win'): #Win32
+                        port=port_list[i][0][3:]
+                        com=int(port)
+                        if(com>0):
+                            self.IO = serial.Serial(com-1, baudrate=384000, bytesize=8, parity ='N', stopbits=1, xonxoff=False, dsrdtr=False, timeout=5)
+                            time.sleep(0.5)
+                            while(True):
+                                num=self.IO.inWaiting()
+                                if(num==0):
+                                    break
+                                else:
+                                    print '-',
+                                self.IO.flushInput()              #Clear input buffer.
+                                time.sleep(0.1)
+                            
                             self.write('*IDN?\n')
                             name = self.read().split(',')         #Query *IDN?
+                            if(usb_vid==2):
+                                if(name[-2:]=='2E'):
+                                    self.chnum=2 #2 channel.
+                            print('%s connected!\n'% name[1])     #Print model name.
+                            return com-1
+                    else: #unix or Raspberry Pi
+                        port=port_list[i][0]
+                        if(port[0:11]=='/dev/ttyACM'):
+                            self.IO = serial.Serial(port, baudrate=384000, bytesize=8, parity ='N', stopbits=1, xonxoff=False, dsrdtr=False, timeout=5)
+                            time.sleep(0.5)
+                            while(True):
+                                num=self.IO.inWaiting()
+                                if(num==0):
+                                    break
+                                else:
+                                    print '-',
+                                self.IO.flushInput()              #Clear input buffer.
+                                time.sleep(0.1)
+                            
+                            self.write('*IDN?\n')
+                            name = self.read().split(',')         #Query *IDN?
+                            if(usb_vid==2):
+                                if(name[-2:]=='2E'):
+                                    self.chnum=2 #2 channel.
                             print('%s connected!\n'% name[1])     #Print model name.
                             return 0
                         else:
                             return -1
-                    else: #Win32
-                        port=port_list[i][0][3:]
-                        com=int(port)
-                        if(com>0):
-                            self.IO = serial.Serial(com-1, baudrate=115200, bytesize=8, parity ='N', stopbits=1, xonxoff=False, dsrdtr=False, timeout=2)
-                            #self.write('*CLS\n')
-                            self.write('*IDN?\n')
-                            name = self.read().split(',')         #Query *IDN?
-                            print('%s connected!\n'% name[1])     #Print model name.
-                            return com-1
+                else:
+                    return -1
+
         print('Device not found!')
         self.chnum=4 #Offline operation(default :4 channel).
         return -1
@@ -122,7 +175,7 @@ class Dso2ke:
                     buf=self.IO.read(100000)
                 except :
                     print 'KeyboardInterrupt!'
-                    exit()
+                    sys.exit(0)
                 num=len(buf)
                 inBuffer+=buf
                 pkg_length=pkg_length-num
@@ -131,7 +184,7 @@ class Dso2ke:
                     buf=self.IO.read(pkg_length)
                 except :
                     print 'KeyboardInterrupt!'
-                    exit()
+                    sys.exit(0)
                 num=len(buf)
                 inBuffer+=buf
                 pkg_length=pkg_length-num
@@ -160,15 +213,16 @@ class Dso2ke:
                 break
         width = 800
         height = 480
-        self.im = Image.new("RGB", (width, height))
-
         #Convert from rgb565 into rgb888
         index=0
-        for y in xrange(height):
-            for x in xrange(width):
-                px = raw_data[index]
-                self.im.putpixel((x, y),((px & 0xF800) >> 8, (px & 0x07E0) >> 3, (px & 0x001F) << 3))
-                index += 1
+        rgb_buf=[]
+        num=width*height
+        for index in xrange(num):
+            rgb_buf+=lu_table[raw_data[index]]
+        img_buf=struct.pack("1152000B", *rgb_buf)
+        self.im=Image.frombuffer('RGB',(800,480), img_buf, 'raw', 'RGB',0,1)
+        if(self.nodename=='pi'):
+            self.im=self.im.transpose(Image.FLIP_TOP_BOTTOM) #For raspberry pi only.
 
     def getRawData(self, header_on,  ch): #Used to get waveform's raw data.
         global inBuffer
@@ -187,7 +241,7 @@ class Dso2ke:
         if(header_on == True):
             if(index==0): #Getting first waveform => reset self.info.
                 self.info=[[], [], [], []]
-                
+            
             self.info[index]=self.read().split(';')
             num=len(self.info[index])
             self.info[index][num-1]=self.info[index][num-2] #Convert info[] to csv compatible format.
@@ -254,7 +308,7 @@ class Dso2ke:
             self.dataType='lsf'
         else:
             return -1
-        f = open(fileName, 'r')
+        f = open(fileName, 'rb')
         info=[]
         #Read file header.
         if(self.dataType=='csv'):
@@ -285,9 +339,9 @@ class Dso2ke:
             wave=f.read() #Read raw data from file.
             self.points_num=len(wave)/2   #Calculate sample points length.
             self.dataMode='Fast'
-            print('self.points_num=%d'%self.points_num)
         f.close()
 
+        print('Plotting waveform...')
         if(count==1): #1 channel
             self.iWave[0]=[0]*self.points_num
             self.ch_list.append(info[5].split(',')[1])
