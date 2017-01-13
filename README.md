@@ -14,14 +14,14 @@ This icon is copyright 2015 (c) Good Will Instrument Co., Ltd all rights reserve
 
 
 
-OpenWave-2KE is an open-source project. It's a simple python program that can get image or raw data from digital storage oscilloscope(GDS-2000E/DCS-2000E) via the USB port.  
+OpenWave-2KE is an open-source project. It's a simple python program that can get image or raw data from digital storage oscilloscope(GDS-2000E/DCS-2000E/MSO-2000E series) via the USB port.  
 
 Now we can execute the same source code on Windows, Linux(Ubuntu) and Raspbian(on Raspberry Pi 2) operating system without changing a word.
 
 
 Equipment
 ------------
-You have to get a new digital storage oscilloscope - GDS-2000E(GOOD WILL INSTRUMENT)/DCS-2000E(TEXIO) and a PC or NB with MS Windows OS.
+You have to get a new digital storage oscilloscope - GDS-2000E(GOOD WILL INSTRUMENT)/DCS-2000E(TEXIO)/MSO-2000E(GOOD WILL INSTRUMENT) and a PC or NB with MS Windows OS.
 
 
 
@@ -30,7 +30,7 @@ Environment
 ------------
 Currently OpenWave-2KE may be executed on Windows XP/7/8 32 or 64 bits OS. You have to download and install the USB driver(dso_vpo V1.08) from [www.gwinstek.com](http://www.gwinstek.com) or [here](/USB driver/dso_vpo_v108.zip) when the first connection with GDS-2000E. 
 
-Please unzip the [OpenWave-2KE V1.01.zip](/Released/OpenWave-2KE V1.01.zip) and find the OpenWave-2KE.exe in the folder. OpenWave-2KE.exe can be executed directly without installation.
+Please unzip the [OpenWave-2KE V1.01.zip](/Released/OpenWave-2KE V1.01.zip) and find the OpenWave-2KE.exe in the folder. OpenWave-2KE.exe can be executed directly without installation. Please be noticed that the path name and folder name can't be double-byte characters.
 
 The OpenWave-2KE source code can also be executed on Ubuntu 32 bits Linux OS or Raspbian OS(on Raspberry Pi 2). The USB driver is not required in this environment.
 
