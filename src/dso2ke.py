@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Module name: dso2ke
 
@@ -25,28 +26,31 @@ Description:
 dso2ke is a python driver module used to get waveform and image from DSO.
 
 Module imported:
-  1. Python 2.7.6
-  2. PySerial 2.7
-  3. Matplotlib 1.3.1
-  4. Numpy 1.8.0
-  5. PIL 1.1.7
+  1. PIL 1.1.7
+  2. Numpy 1.8.0
 
-Version: 1.02
+Version: 1.03
 
-Created on JUL 09 2015
+Created on JUN 28 2018
 
 Author: Kevin Meng
 """
-import serial
-from serial.tools import list_ports
+from gw_com import com
+from gw_lan import lan
 from PIL import Image
 from struct import unpack
-import numpy as np
-import array
 import struct
-import os, sys, time
+import numpy as np
+import io, os, sys, time, platform
 
-__version__ = "1.02" #dso2ke module's version.
+__version__ = "1.03" #dso2ke module's version.
+
+sModelList=[['GDS-2072E','DCS-2072E','IDS-2072E','GDS-72072E','MSO-2072E','MSO-72072E','MSO-2072EA','MSO-72072EA','MDO-2072EC','MDO-72072EC','MDO-2072EG','MDO-72072EG','MDO-2072EX','MDO-72072EX','MDO-2072ES','MDO-72072ES',
+             'GDS-2102E','DCS-2102E','IDS-2102E','GDS-72102E','MSO-2102E','MSO-72102E','MSO-2102EA','MSO-72102EA','MDO-2102EC','MDO-72102EC','MDO-2102EG','MDO-72102EG','MDO-2102EX','MDO-72102EX','MDO-2102ES','MDO-72102ES',
+             'GDS-2202E','DCS-2202E','IDS-2202E','GDS-72202E','MSO-2202E','MSO-72202E','MSO-2202EA','MSO-72202EA','MDO-2202EC','MDO-72202EC','MDO-2202EG','MDO-72202EG','MDO-2202EX','MDO-72202EX','MDO-2202ES','MDO-72202ES'],
+            ['GDS-2074E','DCS-2074E','IDS-2074E','GDS-72074E','MSO-2074E','MSO-72074E','MSO-2074EA','MSO-72074EA','MDO-2074EC','MDO-72074EC','MDO-2074EG','MDO-72074EG','MDO-2074EX','MDO-72074EX','MDO-2074ES','MDO-72074ES',
+             'GDS-2104E','DCS-2104E','IDS-2104E','GDS-72104E','MSO-2104E','MSO-72104E','MSO-2104EA','MSO-72104EA','MDO-2104EC','MDO-72104EC','MDO-2104EG','MDO-72104EG','MDO-2104EX','MDO-72104EX','MDO-2104ES','MDO-72104ES',
+             'GDS-2204E','DCS-2204E','IDS-2204E','GDS-72204E','MSO-2204E','MSO-72204E','MSO-2204EA','MSO-72204EA','MDO-2204EC','MDO-72204EC','MDO-2204EG','MDO-72204EG','MDO-2204EX','MDO-72204EX','MDO-2204ES','MDO-72204ES']]
 
 def generate_lut():
     global lu_table
@@ -59,8 +63,29 @@ def generate_lut():
         pixel888[2]=(i<<3)&0xf8
         lu_table.append(pixel888)
 
-class Dso2ke:
-    def __init__(self):
+class Dso:
+    def __init__(self, interface):
+        if(os.name=='posix'): #unix
+            if(os.uname()[1]=='raspberrypi'):
+                self.osname='pi'
+            else:
+                self.osname='unix'
+        else:
+            if(platform.uname()[2] == 'XP'):
+                self.osname='win'
+            else:
+                os_ver=int(platform.uname()[2])
+                #print 'os_ver=', os_ver
+                #if(os_ver >= 10): 
+                if(os_ver >= 8):  #You might get wrong OS version here(when OpenWave-2KE.exe is running), especially for Win 10.
+                    self.osname='win10'
+                else:
+                    self.osname='win'
+        if(interface != ''):
+            self.connect(interface)
+        else:
+            self.chnum=4
+            self.connection_status=0
         global inBuffer
         self.ver=__version__ #Driver version.
         self.iWave=[[], [], [], []]
@@ -71,97 +96,55 @@ class Dso2ke:
         self.hpos=[[], [], [], []]
         self.ch_list=[]
         self.info=[[], [], [], []]
-        self.chnum=0
-        if(os.name=='posix'): #unix
-            if(os.uname()[1]=='raspberrypi'):
-                self.nodename='pi'
-            else:
-                self.nodename='unix'
-        else:
-            self.nodename='win'
         generate_lut()
-    def ScanComPort(self):
-        port_list=list(list_ports.comports())
-        num=len(port_list)
-        for i in xrange(num):
-            str=port_list[i][2].split('=')
-            if(str[0]=='USB VID:PID'):
-                str=str[1].split(' ')[0] #Extract VID and PID from string.
-                str=str.split(':')
-                print str
-                usb_vid=0
-                if(str[0]=='2184'):
-                    if((str[1].lower()=='003f')or(str[1]=='0041')):
-                        self.chnum=2 #2 channel.
-                        usb_vid=1
-                    elif((str[1]=='0040')or(str[1]=='0042')):
-                        self.chnum=4 #4 channel.
-                        usb_vid=1
-                elif((str[0].lower()=='098f')and(str[1]=='2204')):
-                    usb_vid=2
-                    self.chnum=4
-                if((usb_vid!=0)and(self.chnum!=0)):
-                    if(self.nodename=='win'): #Win32
-                        port=port_list[i][0][3:]
-                        com=int(port)
-                        if(com>0):
-                            self.IO = serial.Serial(com-1, baudrate=384000, bytesize=8, parity ='N', stopbits=1, xonxoff=False, dsrdtr=False, timeout=5)
-                            time.sleep(0.5)
-                            while(True):
-                                num=self.IO.inWaiting()
-                                if(num==0):
-                                    break
-                                else:
-                                    print '-',
-                                self.IO.flushInput()              #Clear input buffer.
-                                time.sleep(0.1)
-                            
-                            self.write('*IDN?\n')
-                            name = self.read().split(',')         #Query *IDN?
-                            if(usb_vid==2):
-                                if(name[-2:]=='2E'):
-                                    self.chnum=2 #2 channel.
-                            print('%s connected!\n'% name[1])     #Print model name.
-                            return com-1
-                    else: #unix or Raspberry Pi
-                        port=port_list[i][0]
-                        if(port[0:11]=='/dev/ttyACM'):
-                            self.IO = serial.Serial(port, baudrate=384000, bytesize=8, parity ='N', stopbits=1, xonxoff=False, dsrdtr=False, timeout=5)
-                            time.sleep(0.5)
-                            while(True):
-                                num=self.IO.inWaiting()
-                                if(num==0):
-                                    break
-                                else:
-                                    print '-',
-                                self.IO.flushInput()              #Clear input buffer.
-                                time.sleep(0.1)
-                            
-                            self.write('*IDN?\n')
-                            name = self.read().split(',')         #Query *IDN?
-                            if(usb_vid==2):
-                                if(name[-2:]=='2E'):
-                                    self.chnum=2 #2 channel.
-                            print('%s connected!\n'% name[1])     #Print model name.
-                            return 0
-                        else:
-                            return -1
-                else:
-                    return -1
 
-        print('Device not found!')
-        self.chnum=4 #Offline operation(default :4 channel).
-        return -1
+    def connect(self, str):
+        if(str.count('.') == 3 and str.count(':') == 1): #Check if str is ip address or not.
+            try:
+                self.IO=lan(str)
+            except:
+                print 'Open LAN port failed!'
+                return
+        elif('/dev/ttyACM' in str) or ('COM' in str): #Check if str is COM port.
+            try:
+                self.IO=com(str)
+            except:
+                print 'Open COM port failed!'
+                return
+            self.IO.clearBuf()
+        else:
+            return
+        self.write=self.IO.write
+        self.read=self.IO.read
+        self.readBytes=self.IO.readBytes
+        self.closeIO=self.IO.closeIO
+        self.write('*IDN?\n')
+        model_name=self.read().split(',')[1]
+        print '%s connected to %s successfully!'%(model_name, str)
+        if(self.osname=='win10') and ('COM' in str):
+            self.write(':USBDelay ON\n')  #Prevent data loss on Win 10.
+            print 'Send :USBDelay ON'
+        if(model_name in sModelList[0]):
+            self.chnum=2   #Got a 2 channel DSO.
+            self.connection_status=1
+
+        elif(model_name in sModelList[1]):
+            self.chnum=4   #Got a 4 channel DSO.
+            self.connection_status=1
+        else:
+            self.chnum=4
+            self.connection_status=0
+            print 'Device not found!'
+            return
         
-    def write(self, str):
-        self.IO.write(str)
-        
-    def read(self):
-        return self.IO.readline()
-    
+        if not os.path.exists('port.config'):
+            f = open('port.config', 'wb')
+            f.write(str)
+            f.close()
+
     def getBlockData(self): #Used to get image data.
         global inBuffer
-        inBuffer=self.IO.read(10)
+        inBuffer=self.readBytes(10)
         length=len(inBuffer)
         self.headerlen = 2 + int(inBuffer[1])
         pkg_length = int(inBuffer[2:self.headerlen]) + self.headerlen + 1 #Block #48000[..8000bytes raw data...]<LF>
@@ -170,58 +153,58 @@ class Dso2ke:
         pkg_length=pkg_length-length
         while True:
             print('%8d\r' %pkg_length),
-            if(pkg_length > 100000):
-                try:
-                    buf=self.IO.read(100000)
-                except :
-                    print 'KeyboardInterrupt!'
-                    sys.exit(0)
-                num=len(buf)
-                inBuffer+=buf
-                pkg_length=pkg_length-num
-            else:
-                try:
-                    buf=self.IO.read(pkg_length)
-                except :
-                    print 'KeyboardInterrupt!'
-                    sys.exit(0)
-                num=len(buf)
-                inBuffer+=buf
-                pkg_length=pkg_length-num
-                if(pkg_length==0):
-                    print('%8d\r' %pkg_length),
-                    break
-
-    def RleDecode(self):
-        raw_data=[]
-        #Convert 8 bits array to 16 bits array.
-        data = np.array(unpack('<%sh' % (len(inBuffer[self.headerlen:-1])/2), inBuffer[self.headerlen:-1]))
-        l=len(data)
-        if( l%2 != 0):   #Ignore reserved data.
-            l=l-1
-        package_length=len(data)
-        index=0
-        bmp_size=0
-        while True:
-            length =data[index]
-            value =data[index+1]
-            index+=2
-            bmp_size+=length
-            buf=[ value for x in xrange(0,length)]
-            raw_data+=buf
-            if(index>=l):
+            if(pkg_length==0):
                 break
-        width = 800
-        height = 480
-        #Convert from rgb565 into rgb888
-        index=0
-        rgb_buf=[]
-        num=width*height
-        for index in xrange(num):
-            rgb_buf+=lu_table[raw_data[index]]
-        img_buf=struct.pack("1152000B", *rgb_buf)
-        self.im=Image.frombuffer('RGB',(800,480), img_buf, 'raw', 'RGB',0,1)
-        if(self.nodename=='pi'):
+            else:
+                if(pkg_length > 100000):
+                    length=100000
+                else:
+                    length=pkg_length
+                try:
+                    buf=self.readBytes(length)
+                except:
+                    print 'KeyboardInterrupt!'
+                    self.clrBuf()
+                    self.closeIO()
+                    sys.exit(0)
+                num=len(buf)
+                inBuffer+=buf
+                pkg_length=pkg_length-num
+
+    def ImageDecode(self, type):
+        if(type):  #1 for RLE decode, 0 for PNG decode.
+            raw_data=[]
+            #Convert 8 bits array to 16 bits array.
+            data = unpack('<%sH' % (len(inBuffer[self.headerlen:-1])/2), inBuffer[self.headerlen:-1])
+            l=len(data)
+            if( l%2 != 0):   #Ignore reserved data.
+                l=l-1
+            package_length=len(data)
+            index=0
+            bmp_size=0
+            while True:
+                length =data[index]
+                value =data[index+1]
+                index+=2
+                bmp_size+=length
+                buf=[ value for x in xrange(0,length)]
+                raw_data+=buf
+                if(index>=l):
+                    break
+            width = 800
+            height = 480
+            #Convert from rgb565 into rgb888
+            index=0
+            rgb_buf=[]
+            num=width*height
+            for index in xrange(num):
+                rgb_buf+=lu_table[raw_data[index]]
+            img_buf=struct.pack("1152000B", *rgb_buf)
+            self.im=Image.frombuffer('RGB',(width,height), img_buf, 'raw', 'RGB',0,1)
+        else:  #0 for PNG decode.
+            self.im=Image.open(io.BytesIO(inBuffer[self.headerlen:-1]))
+            print 'PngDecode()'
+        if(self.osname=='pi'):
             self.im=self.im.transpose(Image.FLIP_TOP_BOTTOM) #For raspberry pi only.
 
     def getRawData(self, header_on,  ch): #Used to get waveform's raw data.
@@ -261,7 +244,7 @@ class Dso2ke:
             #print sHpos, self.vdiv[index],  self.dt[index],  self.hpos[index], sDv
         self.getBlockData()
         self.points_num=len(inBuffer[self.headerlen:-1])/2   #Calculate sample points length.
-        self.iWave[index] = np.array(unpack('>%sh' % (len(inBuffer[self.headerlen:-1])/2), inBuffer[self.headerlen:-1]))
+        self.iWave[index] = unpack('>%sh' % (len(inBuffer[self.headerlen:-1])/2), inBuffer[self.headerlen:-1])
         del inBuffer
         return index #Return the buffer index.
 
@@ -313,7 +296,7 @@ class Dso2ke:
         #Read file header.
         if(self.dataType=='csv'):
             for x in xrange(26):
-                info.append(f.readline().split(',\n')[0])
+                info.append(f.readline().split(',\r\n')[0])
             if(info[0].split(',')[1]!='2.0E'): #Check format version
                 f.close()
                 return -1
@@ -326,7 +309,6 @@ class Dso2ke:
                 self.dataMode='Detail'
         else:
             info=f.readline().split(';') #The last item will be '\n'.
-            #print len(info),  info
             if(info[0].split('Format,')[1]!='2.0E'): #Check format version
                 f.close()
                 return -1
@@ -346,7 +328,7 @@ class Dso2ke:
             self.iWave[0]=[0]*self.points_num
             self.ch_list.append(info[5].split(',')[1])
             self.vunit[0] =info[6].split(',')[1] #Get vertical units.
-            self.vdiv[0]   = float(info[12].split(',')[1]) #Get vertical scale. => Voltage for ADC's single step.
+            self.vdiv[0]  = float(info[12].split(',')[1]) #Get vertical scale. => Voltage for ADC's single step.
             self.vpos[0] =float(info[13].split(',')[1]) #Get vertical position.
             self.hpos[0] =float(info[16].split(',')[1]) #Get horizontal position.
             self.dt[0]   =float(info[19].split(',')[1]) #Get sample period.
@@ -379,10 +361,14 @@ class Dso2ke:
             #write waveform's info to self.info[]
             for ch in xrange(count):
                 self.info[ch].append(info[0])
-            for x in xrange(1, 26):
+            for x in xrange(1, 25):
                 str=info[x].split(',')
                 for ch in xrange(count):
                     self.info[ch].append('%s,%s'%(str[2*ch],  str[2*ch+1]))
+            str=info[25].split(',')
+            for ch in xrange(count):
+                self.info[ch].append('%s'%str[2*ch])
+            
             for ch in xrange(count):
                 self.ch_list.append(info[5].split(',')[2*ch+1])
                 self.iWave[ch]=[0]*self.points_num
@@ -401,11 +387,15 @@ class Dso2ke:
                         index=2*ch
                         self.iWave[ch][i]=int(str[index])
             else:
+                dv=[]
+                for ch in xrange(count):
+                    dv.append(self.vdiv[ch]/25)
                 for i in xrange(num):
                     str=wave[i].split(',')
                     for ch in xrange(count):
                         index=2*ch+1
-                        self.iWave[ch][i]=int(float(str[index])*self.vdiv[ch]/25)
+                        value=float(wave[i].split(',')[index])
+                        self.iWave[ch][i]=int(value/dv[ch])
             del wave
             return count
 
