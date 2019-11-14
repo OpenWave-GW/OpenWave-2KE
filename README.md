@@ -14,14 +14,14 @@ This icon is copyright by Good Will Instrument Co., Ltd all rights reserved.
 
 
 
-OpenWave-2KE is an open-source project. It's a simple python program that can get image or raw data from digital storage oscilloscope(GDS-2000E/DCS-2000E/IDS-2000E/MSO-2000E/MDO-2000E/RSMSO-2000E/RSMDO-2000E series) via USB port or Ethernet.  
+OpenWave-2KE is an open-source project. It's a simple python program that can get image or raw data from digital storage oscilloscope(GDS-2000E/DCS-2000E/IDS-2000E/MSO-2000E/MDO-2000E/MDO-2000A/RSMSO-2000E/RSMDO-2000E series) via USB port or Ethernet.  
 
 Users can execute the same source code on Windows, Linux(Ubuntu) and Raspbian(on Raspberry Pi 2) operating system without changing a word. By using this version, users can also create multiple DSO connections at the same time.
 
 
 Equipment
 ------------
-You have to get a new digital storage oscilloscope - GDS-2000E, MSO-2000E, MDO-2000E(GOOD WILL INSTRUMENT)/DCS-2000E(TEXIO)/IDS-2000E, RSMSO-2000E, RSMDO-2000E(RS PRO) and a PC or NB with MS Windows OS.
+You have to get a new digital storage oscilloscope - GDS-2000E, MSO-2000E, MDO-2000E, MDO-2000A(GOOD WILL INSTRUMENT)/DCS-2000E(TEXIO)/IDS-2000E, RSMSO-2000E, RSMDO-2000E(RS PRO) and a PC or NB with MS Windows OS.
 
 
 
@@ -30,7 +30,7 @@ Environment
 ------------
 Currently OpenWave-2KE may be executed on Windows XP/7/8 32 or 64 bits OS. We also tested the program on Win 10, the connection is good but can't guarantee to be 100% no problem on different platforms. You have to download and install the USB driver(dso_vpo V1.08) from [www.gwinstek.com](http://www.gwinstek.com) or [here](/dso_vpo_v108.zip) when the first connection with GDS-2000E. 
 
-Please unzip the [OpenWave-2KE V1.03.zip](/OpenWave-2KE_V1.03.zip) and find the OpenWave-2KE.exe in the folder. OpenWave-2KE.exe can be executed directly without installation. Please be noticed that the path name and folder name can't be double-byte characters.
+Please unzip the [OpenWave-2KE V1.04.zip](/OpenWave-2KE_V1.04.zip) and find the OpenWave-2KE.exe in the folder. OpenWave-2KE.exe can be executed directly without installation. Please be noticed that the path name and folder name can't be double-byte characters.
 
 The OpenWave-2KE source code can also be executed on Ubuntu 32 bits Linux OS or Raspbian OS(on Raspberry Pi 2). The USB driver is not required in this environment.
 
@@ -42,17 +42,17 @@ Command Line Execution
 
 1.  Connected via USB(please find the port number in the Device Manager)
     ```
-    D:\OpenWave-2KE V1.03>OpenWave-2KE COM5
+    D:\OpenWave-2KE V1.04>OpenWave-2KE COM5
     ```
 
 2.  Connected via USB(automatically reading config file or scanning port)
     ```
-    D:\OpenWave-2KE V1.03>OpenWave-2KE
+    D:\OpenWave-2KE V1.04>OpenWave-2KE
     ```
 
 3.  Connected via Ethernet:
     ```
-    D:\OpenWave-2KE V1.03>OpenWave-2KE 172.16.5.12:3000
+    D:\OpenWave-2KE V1.04>OpenWave-2KE 172.16.5.12:3000
     ```
 
 
@@ -60,17 +60,17 @@ Command Line Execution
 
 1.  Connected via USB(please find the device under /dev)
     ```
-    user@Ubuntu:~/workspace_python/OpenWave-2KE V1.03$ sudo python OpenWave-2KE.py ttyACM1
+    user@Ubuntu:~/workspace_python/OpenWave-2KE V1.04$ sudo python OpenWave-2KE.py ttyACM1
     ```
     
 2.  Connected via USB(automatically reading config file or scanning port)
     ```
-    user@Ubuntu:~/workspace_python/OpenWave-2KE V1.03$ sudo python OpenWave-2KE.py
+    user@Ubuntu:~/workspace_python/OpenWave-2KE V1.04$ sudo python OpenWave-2KE.py
     ```
     
 3.  Connected via Ethernet:
     ```
-    user@Ubuntu:~/workspace_python/OpenWave-2KE V1.03$ sudo python OpenWave-2KE.py 172.16.5.12:3000
+    user@Ubuntu:~/workspace_python/OpenWave-2KE V1.04$ sudo python OpenWave-2KE.py 172.16.5.12:3000
     ```
 
 ***Tips:***
@@ -79,7 +79,7 @@ Command Line Execution
 
 2.  *If you are using Linux, please add your username to group ```dialout``` to get proper privilege level for device accessing.*
     ```
-    user@Ubuntu:~/workspace_python/OpenWave-2KE V1.03$ $ sudo adduser xxxx dialout     #xxxx is your username
+    user@Ubuntu:~/workspace_python/OpenWave-2KE V1.04$ $ sudo adduser xxxx dialout     #xxxx is your username
     ```
 
 3.  *You can also create a `port.config` file containing `COM5` or `ttyACM1` or `172.16.5.11:3000`(as an example) in the folder for next time quick connection.*

@@ -37,9 +37,9 @@ Environment:
   8. PySide 1.2.1
   9. PIL 1.1.7
 
-Version: 1.02
+Version: 1.04
 
-Created on JUN 28 2018
+Modified on NOV 12 2019
 
 Author: Kevin Meng
 """
@@ -59,7 +59,7 @@ from gw_com import com
 from gw_lan import lan
 import dso2ke
 
-__version__ = "1.02" #OpenWave-2KE software version.
+__version__ = "1.04" #OpenWave-2KE software version.
 
 def checkInterface(str):
     if str!= '':
@@ -398,6 +398,12 @@ class Window(QtGui.QWidget):
                 down_sample_factor=4
             else:
                 down_sample_factor=1
+            num=num/down_sample_factor
+        elif(num==20000000):
+            if(total_chnum > 1):
+                down_sample_factor=4
+            else:
+                down_sample_factor=2
             num=num/down_sample_factor
         else:
             down_sample_factor=1
