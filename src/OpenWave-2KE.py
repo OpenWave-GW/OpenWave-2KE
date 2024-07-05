@@ -28,7 +28,7 @@ OpenWave-2KE is a python example program used to get waveform and image from DSO
 
 Environment:
   1. Python 2.7.9
-  2. dso2ke 1.03
+  2. dso2ke 1.06
   3. gw_com 1.00
   4. gw_lan 1.00
   5. PySerial 2.7
@@ -37,9 +37,9 @@ Environment:
   8. PySide 1.2.1
   9. PIL 1.1.7
 
-Version: 1.05
+Version: 1.06
 
-Modified on APR 07 2020
+Modified on JUN 28 2024
 
 Author: Kevin Meng
 """
@@ -59,7 +59,7 @@ from gw_com import com
 from gw_lan import lan
 import dso2ke
 
-__version__ = "1.05" #OpenWave-2KE software version.
+__version__ = "1.06" #OpenWave-2KE software version.
 
 def checkInterface(str):
     if str!= '':
